@@ -1,0 +1,530 @@
+####  
+
+### [字符串转换整数 (atoi)](https://leetcode-cn.com/problems/string-to-integer-atoi/)
+
+代码如下:
+
+```java
+public int myAtoi(String str) {
+        if (str == null || str.equals("")) {
+            return 0;
+        }
+        int result = 0;
+        Boolean flag = null;
+        boolean hasDone = false;
+
+        for (int i = 0; i < str.length(); i++) {
+            char s = str.charAt(i);
+            if (s == '+') {
+                if (flag != null) {
+                    break;
+                }
+                flag = true;
+                continue;
+            }
+            if (s == '-') {
+                if (flag != null) {
+                    break;
+                }
+                flag = false;
+                continue;
+            }
+            int temp_int = s - '0';
+            if (temp_int <= 9 && temp_int >= 0) {
+                if (flag == null) {
+                    flag = true;
+                }
+                if (result == 0) {
+                    result = temp_int;
+                } else {
+                    if ((Integer.MAX_VALUE / 10) < result || (Integer.MAX_VALUE / 10 == result && temp_int > 7)) {
+                        if (flag)
+                            return Integer.MAX_VALUE;
+                        return Integer.MIN_VALUE;
+                    }
+                    result = result * 10 + temp_int;
+                }
+            } else {
+                if (flag != null) {
+                    break;
+                }
+                if (s == ' ') {
+                    continue;
+                }
+                break;
+            }
+
+        }
+        if (flag == null || flag) {
+            return result;
+        }
+        return -result;
+    }
+}
+```
+
+
+
+### 分享
+
+An object is considered *immutable* if its state cannot change after it is constructed. Since they cannot change state, they cannot be corrupted by thread interference or observed in an inconsistent state, making them useful in concurrent applications.
+
+在类被初始化以后，它的状态不在发生改变，那它则为不变类。由于不能改变状态，它们不会被线程干扰或在不一致的状态下被观察到，在并发程序中能够受益。
+
+For example, String objects in Java are immutables.
+
+```java
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+
+public class ImmutableTest {
+    @Test
+    public void testImmutableObjs() {
+        String firstName = "yogen";
+        String lastName = "rai";
+
+        // concatenate two strings
+        String fullName = firstName.concat(" ").concat(lastName);
+
+        assertEquals("yogen", firstName);
+        assertEquals("rai", lastName);
+        assertEquals("yogen rai", fullName);
+    }
+}
+```
+
+比如，Java中的String 就是不变类
+
+The concatenation of firstName on " " (whitespace) and lastName is not going to modify either of them, rather create a new object which will be referenced by fullName.
+
+![String- Immutables](http://blog.miyozinc.com/wp-content/uploads/2019/03/immutables-1.png)
+
+Figure: Strings are immutables
+
+
+
+firstName 追加 空格 和lastName的串连并没有改变它们原来的值，而是创建了一个新的fullName引用对象。
+
+最终结论：String 是 不可变类
+
+
+
+#### Defining Custom Immutable Objects
+
+The following rules define a simple strategy for creating immutable objects:
+
+1. Don't provide "setter" methods — methods that modify fields or objects referred to by fields.
+
+2. Make all fields `final` and `private`.
+
+3. Don't allow subclasses to override methods. The simplest way to do this is to declare the class as `final`. A more sophisticated approach is to make the constructor `private` and construct instances in factory methods.
+
+4. If the instance fields include references to mutable objects, don't allow those objects to be changed:
+
+      
+
+   - Don't provide methods that modify the mutable objects.
+   - Don't share references to the mutable objects. Never store references to external, mutable objects passed to the constructor; if necessary, create copies, and store references to the copies. Similarly, create copies of your internal mutable objects when necessary to avoid returning the originals in your methods.
+
+#### 自定义不可变类 
+
+  下面列举了一些创建不可变类的规则
+
+- 1.不要提供setter 方法（修改字段或者对象的方法)
+
+- 2.字段是 final 和 private 属性
+
+- 3.不允许子类重写方法。最简单的方法是类上申明为final。更复杂的方法是使用私有的构造器 和 在工厂方法中构造实例。
+
+- 4.如果实例字段包引用可变对象，则不允许它们发现改变
+
+  ```
+  不提供方法修改这些可变对象
+  
+   不共享这个这些可变对象。永远不要通过构造器存储这些引用对象，如果实在又必要，创建新的副本，然后存储这些对象。同样，必要时创建内部可变对象的副本，以避免在方法中返回原始对象。
+  ```
+
+  
+
+#### 使用Date对象定义自定义不可变对象
+
+  Date object in java.util.* is not thread-immutable.
+
+  It is good news that new java.time.* API after JDK 8 has `Date` objects as immutable objects. For example, the Student object, in the example below, is immutable even if the property `dateJoined` is `Date` object.
+
+  java.util 下的Date类 不是线程安全的不可变对象
+
+  好消息是，在JDK8 后 java.util.time下的Date是最终变类。例如，在下面的学生类是不可变类，即使是 dateJoined是Date 类
+
+```java
+  import java.time.LocalDate;
+  final class Student {
+      private final String name;
+      private final int age;
+      private final LocalDate dateJoined;
+      public Student(String name, int age, LocalDate dateJoined) {
+          this.name = name;
+          this.age = age;
+          this.dateJoined = dateJoined;
+      }
+      public String getName() {
+          return name;
+      }
+      public int getAge() {
+          return age;
+      }
+      public LocalDate getDateJoined() {
+          return dateJoined;
+      }
+  }
+  public class TestImmutable {
+      @Test
+      public void testImmutableObject() {
+          Student original = new Student("Yogen", 23, LocalDate.of(2016, 5, 1));
+          LocalDate modifiedLocalDate = original.getDateJoined().plusYears(2);
+          Student expected = new Student("Yogen", 23, LocalDate.of(2016, 5, 1));
+          assertEquals(expected, original);
+      }
+  
+```
+
+  
+
+#### Benefits of Immutable Objects
+
+- Immutable objects are simpler to construct, test, and use as they are side-effect free.
+
+- They are much easier to cache since the modification on the object is not going affect it's original state.
+
+- Truly immutable objects are always thread-safe
+
+- Identity mutability problem is avoided
+
+- They help to avoid temporal coupling
+
+  
+
+#### 不可变对象的收益有
+
+```
+- 不可变对象更容易构造，测试和使用，因为它们是无副作用的。
+- 它们更容易缓存，因为对对象的修改不会影响它的原始状态。
+- 真正不可变的对象始终是线程安全的
+- 避免了身份可变性问题
+- 它们有助于避免时间耦合
+```
+
+### 博文
+
+#### mybatis接口动态代理讲解
+
+Mybatis官网地址：
+
+git 地址：https://github.com/mybatis/mybatis-3
+
+官方文档地址:http://www.mybatis.org/mybatis-3/
+
+Mybatis 模块设置
+
+![image-20190320220045106](/Users/yangye/Library/Application%20Support/typora-user-images/image-20190320220045106.png)
+
+使用方法
+
+1. ```java
+   1.先解析配置
+   String resource = "mapper/Configuartion.xml";
+           InputStream inputStream = Resources.getResourceAsStream(resource);
+           SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+           long lastId = Long.MAX_VALUE;
+   2.使用SqlSession 
+           SqlSession sqlSession = sqlSessionFactory.openSession();
+   3.使用MapperProxy invoke
+           UserSnsInfoMapper mapper = sqlSession.getMapper(UserSnsInfoMapper.class);
+           List<UserSnsInfo> userSnsInfoList = mapper.selectById(lastId, 10);
+           System.out.println("userinfoSize:" + userSnsInfoList.size() + " lastId:" + lastId);
+           sqlSession.commit();
+           sqlSession.close();
+   ```
+
+Configuartion.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <environments default="product">
+        <environment id="product">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3312/xiaoyingtvcenter?useSSL=true"/>
+                <property name="username" value="xiaoyingtv"/>
+                <property name="password" value="Quvideo2012"/>
+            </dataSource>
+        </environment>
+    </environments>
+    <mappers>
+        <mapper resource="mapper/UserSnsInfoMapper.xml"/>
+        <mapper resource="mapper/VideoRecognitionMapper.xml"/>
+        <mapper resource="mapper/VivashowMapper.xml"/>
+    </mappers>
+</configuration>
+```
+
+
+
+Mybatis自带数据库连接池
+
+![image-20190321094236150](/Users/yangye/Library/Application%20Support/typora-user-images/image-20190321094236150.png)
+
+
+
+```xml
+<mapper namespace="com.xiaoying.redis.mapper.UserSnsInfoMapper">
+    <resultMap id="userSnsInfoMap" type="com.xiaoying.redis.UserSnsInfo">
+        <id property="id" column="id"/>
+        <result property="auid" column="auid"/>
+        <result property="fansCount" column="fans_count"/>
+        <result property="snsAccountName" column="sns_account_name"/>
+        <result property="snsAccountType" column="sns_account_type"/>
+        <result property="snsNickname" column="sns_nickname"/>
+        <result property="snsRawInfo" column="sns_raw_info"/>
+    </resultMap>
+    <sql id="base_Column">
+        auid,
+        id,
+        fans_count,
+        sns_account_name,
+        sns_account_type,
+        sns_nickname
+    </sql>
+    <select id="selectById" resultMap="userSnsInfoMap">
+        select
+        <include refid="base_Column"/>
+        from user_snsinfo
+        where id >? order by id desc limit #{limit}
+    </select>
+    </mapper>
+```
+
+
+
+
+
+其次是Mybatis的几个核心概念。
+
+1. SqlSession : 代表和数据库的一次会话，向用户提供了操作数据库的方法。
+2. MappedStatement: 代表要发往数据库执行的指令，可以理解为是Sql的抽象表示。
+3. Executor: 具体用来和数据库交互的执行器，接受MappedStatement作为参数。
+4. 映射接口: 在接口中会要执行的Sql用一个方法来表示，具体的Sql写在映射文件中。
+5. 映射文件(传说中的xml配置): 可以理解为是Mybatis编写Sql的地方，通常来说每一张单表都会对应着一个映射文件，在该文件中会定义Sql语句入参和出参的形式。
+
+
+
+查看源码：
+
+
+
+xml解析流程:
+
+```sequence
+title:Mapper代理
+participant SqlSessionFactory
+participant XMLConfigBuilder
+participant Configuration
+
+
+SqlSessionFactory->XMLConfigBuilder:调用build方法
+XMLConfigBuilder->XMLConfigBuilder: 调用parse方法
+XMLConfigBuilder->XMLConfigBuilder: 调用parseConfiguration，解析plugins、typeAliases等元素
+XMLConfigBuilder->XMLMapperBuilder: 调用xmlMapperBuilder parse的方法
+XMLMapperBuilder->XMLMapperBuilder: 调用自己的XMLMapperBuilder 中 bindMapperForNamespace 
+XMLMapperBuilder->Configuration: 把当前的Mapper的namespace 加入到configuration.addMapper(boundType);
+```
+
+
+
+```java
+SqlSessionFactory
+
+public SqlSessionFactory build(InputStream inputStream, String environment, Properties properties) {
+    try {
+      XMLConfigBuilder parser = new XMLConfigBuilder(inputStream, environment, properties);
+      return build(parser.parse());
+    } catch (Exception e) {
+      throw ExceptionFactory.wrapException("Error building SqlSession.", e);
+    } finally {
+      ErrorContext.instance().reset();
+      try {
+        inputStream.close();
+      } catch (IOException e) {
+        // Intentionally ignore. Prefer previous error.
+      }
+    }
+  
+
+```
+
+```java
+XMLConfigBuilder
+
+  private void parseConfiguration(XNode root) {
+    try {
+      //issue #117 read properties first
+      // 优先解析properties
+      propertiesElement(root.evalNode("properties"));
+      Properties settings = settingsAsProperties(root.evalNode("settings"));
+      loadCustomVfs(settings);
+      // 解析别名
+      typeAliasesElement(root.evalNode("typeAliases"));
+      // 解析自定义插件
+      pluginElement(root.evalNode("plugins"));
+      objectFactoryElement(root.evalNode("objectFactory"));
+      objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      settingsElement(settings);
+      // read it after objectFactory and objectWrapperFactory issue #631
+      environmentsElement(root.evalNode("environments"));
+      databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      typeHandlerElement(root.evalNode("typeHandlers"));
+      mapperElement(root.evalNode("mappers"));
+    } catch (Exception e) {
+      throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
+    }
+  }
+  
+ private void mapperElement(XNode parent) throws Exception {
+    if (parent != null) {
+      for (XNode child : parent.getChildren()) {
+        if ("package".equals(child.getName())) {
+          String mapperPackage = child.getStringAttribute("name");
+          configuration.addMappers(mapperPackage);
+        } else {
+          // 我们这边传入了 resource
+          String resource = child.getStringAttribute("resource");
+          String url = child.getStringAttribute("url");
+          String mapperClass = child.getStringAttribute("class");
+          if (resource != null && url == null && mapperClass == null) {
+            ErrorContext.instance().resource(resource);
+            InputStream inputStream = Resources.getResourceAsStream(resource);
+            XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
+            mapperParser.parse();
+          } else if (resource == null && url != null && mapperClass == null) {
+            ErrorContext.instance().resource(url);
+            InputStream inputStream = Resources.getUrlAsStream(url);
+            XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
+            mapperParser.parse();
+          } else if (resource == null && url == null && mapperClass != null) {
+            Class<?> mapperInterface = Resources.classForName(mapperClass);
+            configuration.addMapper(mapperInterface);
+          } else {
+            throw new BuilderException("A mapper element may only specify a url, resource or class, but not more than one.");
+          }
+        }
+      }
+    }
+  
+
+```
+
+```java
+XMLMapperBuilder class
+public void parse() {
+    if (!configuration.isResourceLoaded(resource)) {
+      configurationElement(parser.evalNode("/mapper"));
+      configuration.addLoadedResource(resource);
+      //托管到configuration中
+      bindMapperForNamespace();
+    }
+    parsePendingResultMaps();
+    parsePendingCacheRefs();
+    parsePendingStatements();
+  }
+
+```
+
+
+
+![image-20190320222038438](/Users/yangye/Library/Application Support/typora-user-images/image-20190320222038438.png)
+
+```java
+  @Override
+  public SqlSession openSession(boolean autoCommit) {
+    return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, autoCommit);
+  }
+
+
+ private SqlSession  openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
+    Transaction tx = null;
+    try {
+      final Environment environment = configuration.getEnvironment();
+      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      final Executor executor = configuration.newExecutor(tx, execType);
+      return new DefaultSqlSession(configuration, executor, autoCommit);
+    } catch (Exception e) {
+      closeTransaction(tx); // may have fetched a connection so lets call close()
+      throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+  @Override
+  public <T> T getMapper(Class<T> type) {
+    return configuration.<T>getMapper(type, this);
+  }
+  
+```
+
+
+
+代理生成过程
+
+```sequence
+title:Mapper代理
+participant DefaultSqlSession
+participant Configuration
+participant MapperRegistry
+participant MapperProxyFactory
+participant JDK
+
+
+DefaultSqlSession->Configuration:调用getMapper方法
+Configuration->MapperRegistry:调用getMapper方法
+MapperRegistry->MapperProxyFactory:调用mapperProxyFactory.newInstance方法
+MapperProxyFactory->JDK:使用jdk自带的自动代理生成代理类MapperProxy
+```
+
+
+
+SqlSession 查找
+
+```sequence
+title:query查询
+participant client
+participant sqlSession
+participant executor
+participant cache
+client->sqlSession:打开sqlSession
+sqlSession->executor:调用query方法
+executor->cache: localCache.getObject(key)
+cache->executor: 返回缓存结果
+executor->executor:判断缓存是否为空，不为空则直接返回,不存在则查询db
+executor->sqlSession:返回结果
+sqlSession->client:返回结果### Cat 监控mysql执行
+```
+
+
+
+Executor 继承关系如下图：（模版模式）
+
+![åimage-20190321095931407](/Users/yangye/Library/Application Support/typora-user-images/image-20190321095931407.png)
+
+### share
+
+   最近公司限流平台需要做一个后台管理系统，而后台开发人员都需求很多，而我的项目是边缘，故接下该需求。
+
+问了下公司的前端开发，一般使用react开发。在看了两天后，发现缺的东西太多了，有点打退堂鼓了(主要是很多东西不太懂）。而项目主管问了我下说 前端没有这么难，不要慌，主动给我打起了骨架。而现在慢慢写的差不多了。 感觉对新事物充满畏惧，导致自己没有了规划。这个需要改变的。
